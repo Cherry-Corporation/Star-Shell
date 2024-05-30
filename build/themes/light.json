@@ -1,0 +1,7 @@
+{
+  "textColor": "white",
+  "backgroundColor": "white",
+  "promptColor": "blue",
+  "errorColor": "red",
+  "outputColor": "green"
+}

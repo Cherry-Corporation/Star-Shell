@@ -7,12 +7,12 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/fatih/color"
+	"github.com/gookit/color"
 )
 
 // Terminal version and beta information
 const (
-	TerminalVersion = "0.9"
+	TerminalVersion = "1.0"
 	IsBeta          = true
 	BuildInfo       = "beta 1"
 )
@@ -74,9 +74,9 @@ func executeCommand(input string, config Config, theme Theme) {
 			getColor(theme.ErrorColor).Printf("wget command requires a URL\n")
 			return
 		}
-		wget(args[1])
+		wget(args[1], theme)
 	case "ls":
-		ls()
+		ls(theme)
 	case "cd":
 		if len(args) != 2 {
 			getColor(theme.ErrorColor).Printf("cd command requires a directory\n")
@@ -84,11 +84,11 @@ func executeCommand(input string, config Config, theme Theme) {
 		}
 		cd(args[1], theme)
 	case "help":
-		help()
+		help(theme)
 	case "verfetch":
-		verfetch()
+		verfetch(theme)
 	case "ip":
-		printMainIP()
+		printMainIP(theme)
 	case "pkg":
 		if len(args) < 3 {
 			getColor(theme.ErrorColor).Printf("pkg command requires at least two arguments: install user/repo\n")
@@ -122,26 +122,30 @@ func executeCommand(input string, config Config, theme Theme) {
 	}
 }
 
-func getColor(colorName string) *color.Color {
+func getColor(colorName string) color.RGBColor {
+	if strings.HasPrefix(colorName, "#") || (len(colorName) == 6 || len(colorName) == 3) {
+		return color.HEX(colorName)
+	}
+
 	switch strings.ToLower(colorName) {
 	case "red":
-		return color.New(color.FgRed)
+		return color.HEX("ff0000")
 	case "green":
-		return color.New(color.FgGreen)
+		return color.HEX("00ff00")
 	case "yellow":
-		return color.New(color.FgYellow)
+		return color.HEX("ffff00")
 	case "blue":
-		return color.New(color.FgBlue)
+		return color.HEX("0000ff")
 	case "magenta":
-		return color.New(color.FgMagenta)
+		return color.HEX("ff00ff")
 	case "cyan":
-		return color.New(color.FgCyan)
+		return color.HEX("00ffff")
 	case "black":
-		return color.New(color.FgBlack)
+		return color.HEX("000000")
 	case "white":
-		return color.New(color.FgWhite)
+		return color.HEX("ffffff")
 	default:
-		return color.New(color.FgWhite)
+		return color.HEX("ffffff") // Default to white
 	}
 }
 
@@ -155,13 +159,13 @@ func createDefaultConfig() Config {
 
 	configJson, err := json.MarshalIndent(config, "", "  ")
 	if err != nil {
-		color.Red("Failed to create default config: %v\n", err)
+		color.HEX("ff0000").Printf("Failed to create default config: %v\n", err)
 		os.Exit(1)
 	}
 
 	err = os.WriteFile("config.json", configJson, 0644)
 	if err != nil {
-		color.Red("Failed to write default config file: %v\n", err)
+		color.HEX("ff0000").Printf("Failed to write default config file: %v\n", err)
 		os.Exit(1)
 	}
 
@@ -171,31 +175,31 @@ func createDefaultConfig() Config {
 func createDefaultThemes() {
 	themes := map[string]Theme{
 		"light": {
-			TextColor:       "black",
+			TextColor:       "#ADC8FF",
 			BackgroundColor: "white",
-			PromptColor:     "blue",
-			ErrorColor:      "red",
-			OutputColor:     "green",
+			PromptColor:     "#ADC8FF",
+			ErrorColor:      "#F46049",
+			OutputColor:     "#FDEE98",
 		},
 		"dark": {
-			TextColor:       "white",
+			TextColor:       "#ADC8FF",
 			BackgroundColor: "black",
-			PromptColor:     "cyan",
-			ErrorColor:      "red",
-			OutputColor:     "green",
+			PromptColor:     "#ADC8FF",
+			ErrorColor:      "#F46049",
+			OutputColor:     "#FDEE98",
 		},
 	}
 
 	for themeName, theme := range themes {
 		themeJson, err := json.MarshalIndent(theme, "", "  ")
 		if err != nil {
-			color.Red("Failed to create %s theme: %v\n", themeName, err)
+			color.HEX("ff0000").Printf("Failed to create %s theme: %v\n", themeName, err)
 			os.Exit(1)
 		}
 
 		err = os.WriteFile("themes/"+themeName+".json", themeJson, 0644)
 		if err != nil {
-			color.Red("Failed to write %s theme file: %v\n", themeName, err)
+			color.HEX("ff0000").Printf("Failed to write %s theme file: %v\n", themeName, err)
 			os.Exit(1)
 		}
 	}
@@ -210,13 +214,13 @@ func loadConfig() (Config, Theme) {
 		if os.IsNotExist(err) {
 			config = createDefaultConfig()
 		} else {
-			color.Red("Failed to read config file: %v\n", err)
+			color.HEX("ff0000").Printf("Failed to read config file: %v\n", err)
 			os.Exit(1)
 		}
 	} else {
 		err = json.Unmarshal(file, &config)
 		if err != nil {
-			color.Red("Failed to parse config file: %v\n", err)
+			color.HEX("ff0000").Printf("Failed to parse config file: %v\n", err)
 			os.Exit(1)
 		}
 	}
@@ -241,13 +245,13 @@ func loadTheme(themeName string) Theme {
 			createDefaultThemes()
 			return loadTheme(themeName)
 		} else {
-			color.Red("Failed to read theme file: %v\n", err)
+			color.HEX("ff0000").Printf("Failed to read theme file: %v\n", err)
 			os.Exit(1)
 		}
 	} else {
 		err = json.Unmarshal(file, &theme)
 		if err != nil {
-			color.Red("Failed to parse theme file: %v\n", err)
+			color.HEX("ff0000").Printf("Failed to parse theme file: %v\n", err)
 			os.Exit(1)
 		}
 	}

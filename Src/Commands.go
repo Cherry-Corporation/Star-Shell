@@ -39,7 +39,7 @@ func DownloadFile(url string, filepath string) error {
 	}
 
 	if _, err := os.Stat(filepath); err == nil {
-		log.Printf("File %s already exists. Skipping download.\n", filepath)
+		log.Printf("File  already exists. Skipping download.\n", filepath)
 		return nil
 	} else if !os.IsNotExist(err) {
 		// Some other error occurred
@@ -81,7 +81,7 @@ func (pm *PackageManager) Install(user, repo string) error {
 			if err != nil {
 				return fmt.Errorf("Failed to download asset: %w", err)
 			}
-			log.Printf("Downloaded asset to %s\n", filepath)
+			log.Printf("Downloaded asset to \n", filepath)
 			break
 		}
 	}
@@ -89,57 +89,57 @@ func (pm *PackageManager) Install(user, repo string) error {
 	return nil
 }
 
-func wget(url string) {
+func wget(url string, theme Theme) {
 	output := path.Base(url)
-	fmt.Printf("Downloading %s to %s...\n", url, output)
+	fmt.Printf("Downloading  to ...\n", url, output)
 
 	resp, err := http.Get(url)
 	if err != nil {
-		fmt.Println("Error:", err)
+		getColor(theme.ErrorColor).Println("Error:", err)
 		return
 	}
 	defer resp.Body.Close()
 
 	out, err := os.Create(output)
 	if err != nil {
-		fmt.Println("Error:", err)
+		getColor(theme.ErrorColor).Println("Error:", err)
 		return
 	}
 	defer out.Close()
 
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
-		fmt.Println("Error:", err)
+		getColor(theme.ErrorColor).Println("Error:", err)
 		return
 	}
 
-	fmt.Println("Download completed!")
+	getColor(theme.TextColor).Println("Download completed!")
 }
 
-func ls() {
+func ls(theme Theme) {
 	files, err := ioutil.ReadDir(currentDir)
 	if err != nil {
-		fmt.Println("Error:", err)
+		getColor(theme.ErrorColor).Println("Error:", err)
 		return
 	}
 
 	for _, file := range files {
-		fmt.Println(file.Name())
+		getColor(theme.TextColor).Println(file.Name())
 	}
 }
 
 func cd(dir string, theme Theme) {
 	if err := os.Chdir(dir); err != nil {
-		getColor(theme.ErrorColor).Printf("Failed to change directory: %v\n", err)
+		getColor(theme.ErrorColor).Printf("Failed to change directory: \n", err)
 		return
 	}
 	// Update the current directory
 	currentDir, _ = os.Getwd()
-	getColor(theme.OutputColor).Printf("Changed directory to %s\n", currentDir)
+	getColor(theme.OutputColor).Printf("Changed directory to \n", currentDir)
 }
 
-func help() {
-	fmt.Println("Available commands:")
+func help(theme Theme) {
+	getColor(theme.TextColor).Println("Available commands:")
 	fmt.Println("  help          - Show this help message")
 	fmt.Println("  exit          - Exit the shell")
 	fmt.Println("  ls            - List files in the current directory")
@@ -150,24 +150,24 @@ func help() {
 	fmt.Println("  pkg install <user/repo> - Install a package from GitHub")
 }
 
-func verfetch() {
+func verfetch(theme Theme) {
 	v, _ := host.Info()
 	cpuStat, _ := cpu.Info()
 	vMem, _ := mem.VirtualMemory()
 	diskStat, _ := disk.Usage("/")
 
-	color.Magenta("OS: %s", v.Platform)
-	color.Magenta("OS Version: %s", v.PlatformVersion)
-	color.Magenta("Kernel: %s", v.KernelVersion)
-	color.Magenta("Architecture: %s", v.KernelArch)
-	color.Magenta("CPU: %s", cpuStat[0].ModelName)
-	color.Magenta("Cores: %d", cpuStat[0].Cores)
-	color.Magenta("Total Memory: %v GB", bToGb(vMem.Total))
-	color.Magenta("Available Memory: %v GB", bToGb(vMem.Available))
-	color.Magenta("Used Memory: %v GB", bToGb(vMem.Used))
-	color.Magenta("Disk Total: %v GB", bToGb(diskStat.Total))
-	color.Magenta("Disk Used: %v GB", bToGb(diskStat.Used))
-	color.Magenta("Disk Free: %v GB", bToGb(diskStat.Free))
+	getColor(theme.TextColor).Println("OS: ", v.Platform)
+	getColor(theme.TextColor).Println("OS Version: ", v.PlatformVersion)
+	getColor(theme.TextColor).Println("Kernel: ", v.KernelVersion)
+	getColor(theme.TextColor).Println("Architecture: ", v.KernelArch)
+	getColor(theme.TextColor).Println("CPU: ", cpuStat[0].ModelName)
+	getColor(theme.TextColor).Println("Cores: ", cpuStat[0].Cores)
+	getColor(theme.TextColor).Println("Total Memory:  GB", bToGb(vMem.Total))
+	getColor(theme.TextColor).Println("Available Memory:  GB", bToGb(vMem.Available))
+	getColor(theme.TextColor).Println("Used Memory:  GB", bToGb(vMem.Used))
+	getColor(theme.TextColor).Println("Disk Total:  GB", bToGb(diskStat.Total))
+	getColor(theme.TextColor).Println("Disk Used:  GB", bToGb(diskStat.Used))
+	getColor(theme.TextColor).Println("Disk Free:  GB", bToGb(diskStat.Free))
 }
 
 // Converts bytes to gigabytes
@@ -175,24 +175,20 @@ func bToGb(b uint64) uint64 {
 	return b / (1024 * 1024 * 1024)
 }
 
-func hello() {
-	fmt.Println("Hello, welcome to Cherry Terminal!")
-}
-
-func now() {
+func now(theme Theme) {
 	currentTime := time.Now()
-	fmt.Println("Current time: ", currentTime.Format("15:04:05"))
+	getColor(theme.TextColor).Println("Current time: ", currentTime.Format("15:04:05"))
 }
 
-func printMainIP() {
+func printMainIP(theme Theme) {
 	conn, err := net.Dial("udp", "8.8.8.8:80")
 	if err != nil {
-		color.Red("Oops: %v\n", err.Error())
+		color.Red("Oops: \n", err.Error())
 		return
 	}
 	defer conn.Close()
 
 	localAddr := conn.LocalAddr().(*net.UDPAddr)
 
-	color.Green("IP address: %s", localAddr.IP.String())
+	color.Green("IP address: ", localAddr.IP.String())
 }

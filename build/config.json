@@ -1,6 +1,6 @@
 {
-  "prompt": "Star-Shell$",
-  "initialCommands": ["ip", "verfetch"],
+  "prompt": "$",
+  "initialCommands": [],
   "theme": "dark",
   "wgetEnabled": true
 }
